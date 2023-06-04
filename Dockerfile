@@ -5,7 +5,7 @@ FROM golang:alpine
 WORKDIR /app
 
 # Copy the Go code to the container
-COPY main.go .
+COPY . .
 
 # Build the Go application
 RUN go build -o main .

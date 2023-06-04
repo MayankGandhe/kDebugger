@@ -41,6 +41,6 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte("OK"))
 	})
-
+	fmt.Println("Server Started")
 	log.Fatal(http.ListenAndServe(":5000", nil))
 }

@@ -42,5 +42,5 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 	fmt.Println("Server Started")
-	log.Fatal(http.ListenAndServe(":5000", nil))
+	log.Error(http.ListenAndServe(":5000", nil))
 }

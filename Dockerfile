@@ -11,7 +11,7 @@ RUN go get main
 RUN go build -o main .
 
 # Expose the port the application listens on
-EXPOSE 8080
+EXPOSE 5000
 
 # Set the command to run when the container starts
 CMD ["./main"]

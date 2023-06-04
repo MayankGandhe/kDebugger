@@ -40,6 +40,19 @@ func main() {
 		// Return headers in JSON format
 		c.JSON(http.StatusOK, headers)
 	})
+	r.POST("/", func(c *gin.Context) {
+		// Convert headers to map[string]string
+		headers := make(map[string]string)
+		for name, values := range c.Request.Header {
+			headers[name] = values[0]
+		}
+
+		// Set Content-Type header
+		c.Header("Content-Type", "application/json")
+
+		// Return headers in JSON format
+		c.JSON(http.StatusOK, headers)
+	})
 
 	log.Fatal(r.Run(":5000"))
 }

@@ -11,6 +11,7 @@ func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		// Print request method and URL
 		fmt.Printf("Received request: %s %s\n", r.Method, r.URL.Path)
+		fmt.Printf("Got Input")
 
 		// Print request headers
 		fmt.Println("Headers:")

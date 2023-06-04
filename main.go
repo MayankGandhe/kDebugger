@@ -17,8 +17,8 @@ func (dh DebugHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		headers[name] = values[0]
 	}
 
-	// Convert headers map to JSON
-	headersJSON, err := json.MarshalIndent(headers)
+	// Indent headers map to JSON
+	headersJSON, err := json.MarshalIndent(headers, "", "  ")
 	if err != nil {
 		log.Println("Error encoding headers to JSON:", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

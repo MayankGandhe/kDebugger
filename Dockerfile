@@ -6,7 +6,7 @@ WORKDIR /app
 
 # Copy the Go code to the container
 COPY . .
-
+RUN go get main
 # Build the Go application
 RUN go build -o main .
 

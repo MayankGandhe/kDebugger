@@ -1,14 +1,14 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strings"
 	"time"
-	"context"
-	"database/sql"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -19,9 +19,9 @@ import (
 )
 
 type ApiResponse struct {
-    Success bool                   `json:"success"`
-    Message string                 `json:"message"`
-    Data    map[string]interface{} `json:"data"`
+	Success bool                   `json:"success"`
+	Message string                 `json:"message"`
+	Data    map[string]interface{} `json:"data"`
 }
 
 // getEnvOrDefault retrieves an environment variable or returns a default value if not set
@@ -72,7 +72,7 @@ func main() {
 		// Return headers in JSON format
 		c.JSON(http.StatusOK, headers)
 	})
-	
+
 	// Get headers
 	r.POST("/", func(c *gin.Context) {
 		// Convert headers to map[string]interface{}
@@ -80,23 +80,23 @@ func main() {
 		for name, values := range c.Request.Header {
 			headers[name] = values[0]
 		}
-	
+
 		// Create response object
 		response := ApiResponse{
 			Success: true,
 			Message: "Headers fetched successfully",
 			Data:    headers,
 		}
-	
+
 		// Return response in JSON format
 		c.JSON(http.StatusOK, response)
 	})
-	
+
 	// Get environment variables
 	r.POST("/env", func(c *gin.Context) {
 		// Retrieve all environment variables
 		envMap := make(map[string]interface{})
-	
+
 		// Attempt to retrieve environment variables
 		envPairs := os.Environ()
 		if envPairs == nil {
@@ -110,28 +110,28 @@ func main() {
 			c.JSON(http.StatusInternalServerError, response)
 			return
 		}
-	
+
 		for _, pair := range envPairs {
 			keyVal := strings.Split(pair, "=")
 			envMap[keyVal[0]] = keyVal[1] // value is converted to interface{}
 		}
-	
+
 		// Create response object
 		response := ApiResponse{
 			Success: true,
 			Message: "Environment variables fetched successfully",
 			Data:    envMap,
 		}
-	
+
 		// Return response in JSON format
 		c.JSON(http.StatusOK, response)
-	})	
+	})
 
 	// Get environment variables except os variables
 	r.POST("/env-from-dotenv", func(c *gin.Context) {
 		// Retrieve environment variables specifically from .env file
 		envMap := make(map[string]interface{})
-	
+
 		// Load environment variables from .env file
 		envFile, err := godotenv.Read(".env")
 		if err != nil {
@@ -143,26 +143,26 @@ func main() {
 			})
 			return
 		}
-	
+
 		for key, value := range envFile {
 			envMap[key] = value
 		}
-	
+
 		// Create response object
 		response := ApiResponse{
 			Success: true,
 			Message: "Environment variables from .env file fetched successfully",
 			Data:    envMap,
 		}
-	
+
 		// Return response in JSON format
 		c.JSON(http.StatusOK, response)
 	})
-	
+
 	// search environment variables with a searchKey
 	r.GET("/env/:searchKey", func(c *gin.Context) {
 		searchKey := strings.ToLower(c.Param("searchKey"))
-	
+
 		// Check if searchKey has at least two characters
 		if len(searchKey) < 2 {
 			// Create response object for invalid searchKey
@@ -175,9 +175,9 @@ func main() {
 			c.JSON(http.StatusBadRequest, response)
 			return
 		}
-	
+
 		envMap := make(map[string]interface{})
-	
+
 		for _, pair := range os.Environ() {
 			keyVal := strings.Split(pair, "=")
 			key := strings.ToLower(keyVal[0])
@@ -185,14 +185,14 @@ func main() {
 				envMap[keyVal[0]] = keyVal[1]
 			}
 		}
-	
+
 		// Create response object
 		response := ApiResponse{
 			Success: true,
 			Message: "Environment variables with key similar to search key fetched successfully",
 			Data:    envMap,
 		}
-	
+
 		// Return response in JSON format
 		c.JSON(http.StatusOK, response)
 	})
@@ -254,7 +254,7 @@ func main() {
 			Message: "MongoDB connection successful",
 		})
 	})
-	
+
 	// check mysql connection
 	r.GET("/check-mysql-connection", func(c *gin.Context) {
 		// Retrieve MySQL connection details from environment variables with defaults

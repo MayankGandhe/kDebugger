@@ -98,7 +98,7 @@
 			"response": []
 		},
 		{
-			"name": "Check-mysql-connection",
+			"name": "Check mysql connection",
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -110,6 +110,25 @@
 					"port": "3000",
 					"path": [
 						"check-mysql-connection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check timeout",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/timeout/200",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"timeout",
+						"200"
 					]
 				}
 			},

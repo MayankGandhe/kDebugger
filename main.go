@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -295,6 +296,47 @@ func main() {
 			Success: true,
 			Message: "MySQL connection successful",
 		})
+	})
+
+	// Check timeout
+	r.GET("/timeout/:timeoutValue", func(c *gin.Context) {
+		timeoutValueStr := c.Param("timeoutValue")
+		timeoutValue, err := strconv.Atoi(timeoutValueStr)
+		if err != nil || timeoutValue <= 0 {
+			timeoutValue = 30 // Default timeout value of 30 seconds
+		}
+
+		// Create a channel to receive notification
+		done := make(chan bool)
+
+		// Start a goroutine to simulate processing
+		go func() {
+			// Simulate processing time
+			time.Sleep(time.Duration(timeoutValue) * time.Second)
+
+			// Send notification through the channel
+			done <- true
+		}()
+
+		// Wait for either timeout or processing completion
+		select {
+		case <-done:
+			// Respond after processing completes
+			response := ApiResponse{
+				Success: true,
+				Message: "Response after timeout",
+				Data:    nil,
+			}
+			c.JSON(http.StatusOK, response)
+		case <-time.After(150 * time.Second): // Adjust this timeout as needed
+			// Send a response if the request takes too long to process
+			response := ApiResponse{
+				Success: false,
+				Message: "Processing taking longer than expected",
+				Data:    nil,
+			}
+			c.JSON(http.StatusRequestTimeout, response)
+		}
 	})
 
 	// Setting application port

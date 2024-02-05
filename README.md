@@ -36,3 +36,16 @@ This command will start the application, and it will use the configurations prov
 Access the Application: Once the application is running, you can access it by navigating to http://localhost:3000 in your web browser.
 
 That's it! You have successfully run the application with the provided configurations.
+
+
+
+# API Endpoints
+
+| Method | Endpoint                                        | Description                       |
+|--------|-------------------------------------------------|-----------------------------------|
+| POST   | localhost:3000/                                 | Get headers                       |
+| POST   | localhost:3000/env                              | Get all env variables             |
+| POST   | localhost:3000/env-from-dotenv                  | Get .env file variables           |
+| GET    | localhost:3000/env/mongo                        | Get filtered environment variables|
+| POST   | localhost:3000/setup-and-check-mysql-connection | Set vars &  check mysql connection|
+| GET    | localhost:3000/timeout/200                      | Check timeout                     |

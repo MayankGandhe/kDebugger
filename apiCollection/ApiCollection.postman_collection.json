@@ -80,36 +80,27 @@
 			"response": []
 		},
 		{
-			"name": "Check-mongo-connection",
+			"name": "Set & Check Mysql Conn",
 			"request": {
-				"method": "GET",
+				"method": "POST",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"MYSQL_USER\": \"root\",\n    \"MYSQL_PASSWORD\": \"\",\n    \"MYSQL_HOST\": \"localhost\",\n    \"MYSQL_PORT\": \"3306\",\n    \"MYSQL_DATABASE\": \"mysql\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "localhost:3000/check-mongo-connection",
+					"raw": "localhost:3000/setup-and-check-mysql-connection",
 					"host": [
 						"localhost"
 					],
 					"port": "3000",
 					"path": [
-						"check-mongo-connection"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Check mysql connection",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "localhost:3000/check-mysql-connection",
-					"host": [
-						"localhost"
-					],
-					"port": "3000",
-					"path": [
-						"check-mysql-connection"
+						"setup-and-check-mysql-connection"
 					]
 				}
 			},

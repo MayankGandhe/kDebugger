@@ -25,6 +25,16 @@ type ApiResponse struct {
 	Data    map[string]interface{} `json:"data"`
 }
 
+// Declare global variables
+var (
+	mysqlVarsProvided     bool
+	userProvidedMysqlVars *map[string]string
+	requiredVars          = []string{"MYSQL_HOST", "MYSQL_USER", "MYSQL_PASSWORD", "MYSQL_PORT", "MYSQL_DATABASE"}
+
+	mongoVarsProvided     bool
+	userProvidedMongoVars *map[string]string
+)
+
 // getEnvOrDefault retrieves an environment variable or returns a default value if not set
 func getEnvOrDefault(key, defaultValue string) string {
 	value := os.Getenv(key)
@@ -32,6 +42,47 @@ func getEnvOrDefault(key, defaultValue string) string {
 		return defaultValue
 	}
 	return value
+}
+
+// Function to check MySQL connection
+func checkMySQLConnection() error {
+	// Attempt to connect to MySQL database
+	db, err := sql.Open("mysql", getDSN())
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	// Ping database to check connection status
+	if err := db.Ping(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Function to get MySQL connection details
+func getDSN() string {
+	var (
+		mysqlUser, mysqlPassword, mysqlHost, mysqlPort, mysqlDatabase string
+	)
+
+	if mysqlVarsProvided && userProvidedMysqlVars != nil {
+		// If mysqlVarsProvided is true and userProvidedMysqlVars is not nil, use values from userProvidedMysqlVars
+		mysqlUser, mysqlPassword, mysqlHost, mysqlPort, mysqlDatabase = (*userProvidedMysqlVars)["MYSQL_USER"], (*userProvidedMysqlVars)["MYSQL_PASSWORD"],
+			(*userProvidedMysqlVars)["MYSQL_HOST"], (*userProvidedMysqlVars)["MYSQL_PORT"],
+			(*userProvidedMysqlVars)["MYSQL_DATABASE"]
+	} else {
+		// If mysqlVarsProvided is false or userProvidedMysqlVars is nil, use values from environment variables with defaults
+		mysqlUser = getEnvOrDefault("MYSQL_USER", "root")
+		mysqlPassword = getEnvOrDefault("MYSQL_PASSWORD", "")
+		mysqlHost = getEnvOrDefault("MYSQL_HOST", "localhost")
+		mysqlPort = getEnvOrDefault("MYSQL_PORT", "3306")
+		mysqlDatabase = getEnvOrDefault("MYSQL_DATABASE", "mysql")
+	}
+
+	// Construct MySQL data source name (DSN)
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", mysqlUser, mysqlPassword, mysqlHost, mysqlPort, mysqlDatabase)
 }
 
 func main() {
@@ -198,103 +249,99 @@ func main() {
 		c.JSON(http.StatusOK, response)
 	})
 
-	// check mongodb connection
-	r.GET("/check-mongo-connection", func(c *gin.Context) {
-		// Retrieve MongoDB connection details from environment variables with defaults
-		mongoUser := os.Getenv("MONGO_USER")
-		mongoPassword := os.Getenv("MONGO_PASSWORD")
-		mongoHost := os.Getenv("MONGO_HOST")
-		mongoPort := os.Getenv("MONGO_PORT")
-		mongoDatabase := os.Getenv("MONGO_DATABASE")
-
-		// Construct MongoDB connection URL
-		mongoURL := fmt.Sprintf("mongodb://%s:%s@%s:%s/%s", mongoUser, mongoPassword, mongoHost, mongoPort, mongoDatabase)
-
-		// Create MongoDB client options with default timeout
-		clientOptions := options.Client().ApplyURI(mongoURL).SetConnectTimeout(10 * time.Second)
-
-		// Create MongoDB client
-		client, err := mongo.NewClient(clientOptions)
-		if err != nil {
-			// Handle error if client creation fails
-			c.JSON(http.StatusInternalServerError, ApiResponse{
+	// Set mysql vars & check connecction
+	r.POST("/setup-and-check-mysql-connection", func(c *gin.Context) {
+		// Parse request body to get provided MYSQLDB variables
+		var reqBody map[string]string
+		if err := c.ShouldBindJSON(&reqBody); err != nil {
+			c.JSON(http.StatusBadRequest, ApiResponse{
 				Success: false,
-				Message: "Failed to create MongoDB client",
+				Message: "Failed to parse request body: " + err.Error(),
 			})
 			return
 		}
 
-		// Connect to MongoDB
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
+		// Validate presence of all required keys
+		missingKeys := make([]string, 0)
+		for _, key := range requiredVars {
+			if _, ok := reqBody[key]; !ok {
+				missingKeys = append(missingKeys, key)
+			}
+		}
 
-		err = client.Connect(ctx)
-		if err != nil {
-			// Handle error if connection fails
-			c.JSON(http.StatusInternalServerError, ApiResponse{
+		if len(missingKeys) > 0 {
+			c.JSON(http.StatusBadRequest, ApiResponse{
 				Success: false,
-				Message: "Failed to connect to MongoDB",
+				Message: fmt.Sprintf("Required MYSQLDB variables missing in request: %s", strings.Join(missingKeys, ", ")),
 			})
 			return
 		}
 
-		// Disconnect from MongoDB
-		err = client.Disconnect(ctx)
-		if err != nil {
-			// Handle error if disconnection fails
-			c.JSON(http.StatusInternalServerError, ApiResponse{
-				Success: false,
-				Message: "Failed to disconnect from MongoDB",
-			})
-			return
+		// Check if all provided variables are empty
+		allEmpty := true
+		for _, key := range requiredVars {
+			if val := reqBody[key]; val != "" {
+				allEmpty = false
+				break
+			}
 		}
 
-		// Connection successful, return success response
-		c.JSON(http.StatusOK, ApiResponse{
-			Success: true,
-			Message: "MongoDB connection successful",
-		})
-	})
+		// If all provided variables are empty, retrieve credentials from .env file or defaults
+		if allEmpty {
+			// Retrieve MYSQLDB connection details from .env file or defaults
+			reqBody["MYSQL_HOST"] = getEnvOrDefault("MYSQL_HOST", "localhost")
+			reqBody["MYSQL_USER"] = getEnvOrDefault("MYSQL_USER", "root")
+			reqBody["MYSQL_PASSWORD"] = getEnvOrDefault("MYSQL_PASSWORD", "")
+			reqBody["MYSQL_PORT"] = getEnvOrDefault("MYSQL_PORT", "3306")
+			reqBody["MYSQL_DATABASE"] = getEnvOrDefault("MYSQL_DATABASE", "myDatabase")
 
-	// check mysql connection
-	r.GET("/check-mysql-connection", func(c *gin.Context) {
-		// Retrieve MySQL connection details from environment variables with defaults
-		mysqlUser := getEnvOrDefault("MYSQL_USER", "root")
-		mysqlPassword := getEnvOrDefault("MYSQL_PASSWORD", "")
-		mysqlHost := getEnvOrDefault("MYSQL_HOST", "localhost")
-		mysqlPort := getEnvOrDefault("MYSQL_PORT", "3306")
-		mysqlDatabase := getEnvOrDefault("MYSQL_DATABASE", "myDatabase")
+			userProvidedMysqlVars = nil
+			mysqlVarsProvided = false
+		} else {
 
-		// Construct MySQL data source name (DSN)
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s", mysqlUser, mysqlPassword, mysqlHost, mysqlPort, mysqlDatabase)
+			// Validate that non-empty variables are not empty
+			emptyKeys := make([]string, 0)
+			for _, key := range []string{"MYSQL_HOST", "MYSQL_USER", "MYSQL_PORT", "MYSQL_DATABASE"} {
+				if reqBody[key] == "" {
+					emptyKeys = append(emptyKeys, key)
+				}
+			}
+			if len(emptyKeys) > 0 {
+				c.JSON(http.StatusBadRequest, ApiResponse{
+					Success: false,
+					Message: fmt.Sprintf("%s cannot be empty", strings.Join(emptyKeys, ", ")),
+				})
+				return
+			}
 
-		// Attempt to connect to MySQL database
-		db, err := sql.Open("mysql", dsn)
-		if err != nil {
-			// Handle error if connection fails
+			// Set global variables to indicate MYSQLDB vars provided by the user
+			mysqlVarsProvided = true
+			userProvidedMysqlVars = &reqBody
+		}
+
+		// Attempt to connect to MySQL database and check the connection status
+		if err := checkMySQLConnection(); err != nil {
 			c.JSON(http.StatusInternalServerError, ApiResponse{
 				Success: false,
 				Message: "Failed to connect to MySQL database: " + err.Error(),
 			})
 			return
 		}
-		defer db.Close()
 
-		// Ping database to check connection status
-		err = db.Ping()
-		if err != nil {
-			// Handle error if ping fails
-			c.JSON(http.StatusInternalServerError, ApiResponse{
-				Success: false,
-				Message: "Failed to ping MySQL database: " + err.Error(),
-			})
-			return
+		// Connection successful, return success response with information about credentials
+		var credentialSource string
+		if mysqlVarsProvided {
+			credentialSource = "userProvided"
+		} else {
+			credentialSource = "environment"
 		}
 
-		// Connection successful, return success response
+		// Include information about the source of credentials in the response message
+		responseMessage := fmt.Sprintf("MySQL connection successful. Credentials taken from: %s", credentialSource)
+
 		c.JSON(http.StatusOK, ApiResponse{
 			Success: true,
-			Message: "MySQL connection successful",
+			Message: responseMessage,
 		})
 	})
 
@@ -328,7 +375,7 @@ func main() {
 				Data:    nil,
 			}
 			c.JSON(http.StatusOK, response)
-		case <-time.After(150 * time.Second): // Adjust this timeout as needed
+		case <-time.After(300 * time.Second): // Adjust this timeout as needed
 			// Send a response if the request takes too long to process
 			response := ApiResponse{
 				Success: false,

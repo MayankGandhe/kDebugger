@@ -1,7 +1,7 @@
 package main
 
 import (
-	"context"
+	// "context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -13,8 +13,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	// "go.mongodb.org/mongo-driver/mongo"
+	// "go.mongodb.org/mongo-driver/mongo/options"
 	// "go.mongodb.org/mongo-driver/bson"
 	_ "github.com/go-sql-driver/mysql"
 )

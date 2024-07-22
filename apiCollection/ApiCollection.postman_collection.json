@@ -1,0 +1,129 @@
+{
+	"info": {
+		"_postman_id": "a202001f-c681-4b04-800b-c20bdf280e58",
+		"name": "ApiCollection",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "32101760"
+	},
+	"item": [
+		{
+			"name": "Get headers",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all env variables",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/env",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"env"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get .env file variables",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/env-from-dotenv",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"env-from-dotenv"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get filtered environment variables",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/env/mongo",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"env",
+						"mongo"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Set & Check Mysql Conn",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"MYSQL_USER\": \"root\",\n    \"MYSQL_PASSWORD\": \"\",\n    \"MYSQL_HOST\": \"localhost\",\n    \"MYSQL_PORT\": \"3306\",\n    \"MYSQL_DATABASE\": \"mysql\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:3000/setup-and-check-mysql-connection",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"setup-and-check-mysql-connection"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check timeout",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "localhost:3000/timeout/200",
+					"host": [
+						"localhost"
+					],
+					"port": "3000",
+					"path": [
+						"timeout",
+						"200"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
